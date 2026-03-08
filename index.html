@@ -1,60 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Telegram Channel Verification</title>
 
+<!-- Telegram Web App JS -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<style>
-body{
-  font-family:Arial;
-  text-align:center;
-  background:#0f172a;
-  color:white;
-  padding:40px;
-}
-input{
-  padding:12px;
-  width:250px;
-  border-radius:8px;
-  border:none;
-  margin-top:20px;
-}
-button{
-  padding:12px 25px;
-  border:none;
-  border-radius:8px;
-  background:#22c55e;
-  color:white;
-  font-size:16px;
-  margin-top:15px;
-  cursor:pointer;
-}
-#result{
-  margin-top:25px;
-  font-size:18px;
-}
-</style>
-
-</head>
-<body>
-
-<h2>Telegram Channel Verification</h2>
-
-<input id="channel" placeholder="@kanal_username">
-<br>
-<button onclick="verify()">VERIFY CHANNEL</button>
-
-<div id="result"></div>
-
+<!-- Firebase JS -->
 <script type="module">
-
-// Firebase import va konfiguratsiyasi
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Firebase config
+// 🔹 Firebase konfiguratsiyasi
 const firebaseConfig = {
   apiKey: "AIzaSyAxZ-mSgJhuTdGcH3T4oJym3qjGso71keM",
   authDomain: "user1111-c84a0.firebaseapp.com",
@@ -66,49 +25,131 @@ const firebaseConfig = {
   measurementId: "G-QLE9866NEY"
 };
 
-// Firebase boshlash
+// 🔹 Firebase boshlash
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);   // ❗ db endi global scope’da
+const db = getDatabase(app);
 
-// Bot token va ID
-const BOT_TOKEN = "8653382126:AAF0NTKY1JaJoveDIUwfP0ovaGMexsUDZ78";
-const BOT_ID = "8653382126";
+// 🔹 Bot token va ID
+const BOT_TOKEN = "8653382126:AAF0NTKY1JaJoveDIUwfP0ovaGMexsUDZ78"; // BotFather orqali oling
+const BOT_ID = "8653382126";       // getMe orqali oling
 
-window.verify = async function(){
+// 🔹 Kanalni tekshirish funksiyasi
+window.verify = async function() {
+  const usernameInput = document.getElementById("channel");
+  const resultDiv = document.getElementById("result");
+  const username = usernameInput.value.replace("@","").trim();
+
+  if(!username){
+    resultDiv.innerHTML = "❌ Iltimos kanal username kiriting!";
+    return;
+  }
+
+  resultDiv.innerHTML = "⏳ Tekshirilmoqda...";
+
   try{
-    let username = document.getElementById("channel").value.replace("@","")
-    if(!username){
-      document.getElementById("result").innerHTML="❌ Username kiriting"
-      return
-    }
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=@${username}&user_id=${BOT_ID}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log(data);
 
-    document.getElementById("result").innerHTML="⏳ Tekshirilmoqda..."
+    if(data.ok && data.result.status === "administrator"){
+      resultDiv.innerHTML = "⭐ VERIFIED CHANNEL";
 
-    // Telegram API orqali bot adminligini tekshirish
-    let url = `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember?chat_id=@${username}&user_id=${BOT_ID}`
-    let response = await fetch(url)
-    let data = await response.json()
-
-    console.log(data)
-
-    if(data.ok && data.result.status=="administrator"){
       // Firebase ga yozish
       await set(ref(db,"channels/"+username),{
         status:"verified",
         icon:"⭐",
         date:Date.now()
-      })
-      document.getElementById("result").innerHTML="⭐ VERIFIED CHANNEL"
+      });
+
     }else{
-      document.getElementById("result").innerHTML="❌ Bot kanalga admin emas"
+      resultDiv.innerHTML = "❌ Bot kanalga admin emas";
     }
 
   }catch(e){
-    document.getElementById("result").innerHTML="❌ Xatolik: "+e
+    resultDiv.innerHTML = "❌ Xatolik: "+e;
   }
 }
-
 </script>
+
+<style>
+/* 🔹 Asosiy dizayn */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  background: linear-gradient(135deg,#0f172a,#1e293b);
+  color: #fff;
+  padding: 50px 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 🔹 Sarlavha */
+h2 {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  background: linear-gradient(90deg,#22c55e,#3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 🔹 Input */
+input {
+  padding: 15px 20px;
+  width: 300px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  margin-bottom: 20px;
+  outline: none;
+}
+
+/* 🔹 Tugma */
+button {
+  padding: 15px 30px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90deg,#22c55e,#3b82f6);
+  color: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* 🔹 Natija qutisi */
+#result {
+  margin-top: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  min-height: 24px;
+  transition: all 0.3s;
+}
+
+/* 🔹 Responsive */
+@media(max-width:400px){
+  input{width: 90%;}
+  button{width: 90%;}
+}
+</style>
+</head>
+
+<body>
+
+<h2>Telegram Channel Verification</h2>
+
+<input id="channel" placeholder="@kanal_username">
+<br>
+<button onclick="verify()">VERIFY CHANNEL</button>
+
+<div id="result"></div>
 
 </body>
 </html>
