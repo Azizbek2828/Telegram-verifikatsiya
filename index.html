@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>Channel Verification</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+background:#0f172a;
+color:white;
+padding:40px;
+}
+
+input{
+padding:12px;
+width:250px;
+border-radius:8px;
+border:none;
+margin-top:20px;
+}
+
+button{
+padding:12px 25px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+color:white;
+font-size:16px;
+margin-top:15px;
+cursor:pointer;
+}
+
+#result{
+margin-top:25px;
+font-size:18px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Telegram Channel Verification</h2>
+
+<input id="channel" placeholder="@channel_username">
+
+<br>
+
+<button onclick="verify()">VERIFY CHANNEL</button>
+
+<div id="result"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyAxZ-mSgJhuTdGcH3T4oJym3qjGso71keM",
+authDomain: "user1111-c84a0.firebaseapp.com",
+databaseURL: "https://user1111-c84a0-default-rtdb.firebaseio.com",
+projectId: "user1111-c84a0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.verify = async function(){
+
+try{
+
+let username = document.getElementById("channel").value.replace("@","")
+
+if(username==""){
+
+document.getElementById("result").innerHTML="❌ Username kiriting"
+return
+
+}
+
+document.getElementById("result").innerHTML="⏳ Tekshirilmoqda..."
+
+let res = await fetch("https://t.me/"+username)
+
+if(res.status!=200){
+
+document.getElementById("result").innerHTML="❌ Kanal topilmadi"
+return
+
+}
+
+const BOT_TOKEN="8653382126:AAF0NTKY1JaJoveDIUwfP0ovaGMexsUDZ78";
+const BOT_ID="8653382126";
+
+let url="https://api.telegram.org/bot"+BOT_TOKEN+
+"/getChatMember?chat_id=@"+username+"&user_id="+BOT_ID
+
+let botcheck=await fetch(url)
+
+let data=await botcheck.json()
+
+console.log(data)
+
+if(data.ok && data.result.status=="administrator"){
+
+await set(ref(db,"channels/"+username),{
+
+status:"verified",
+icon:"⭐",
+date:Date.now()
+
+})
+
+document.getElementById("result").innerHTML="⭐ VERIFIED CHANNEL"
+
+}else{
+
+document.getElementById("result").innerHTML="❌ Bot admin emas"
+
+}
+
+}catch(e){
+
+document.getElementById("result").innerHTML="❌ Xatolik: "+e
+
+}
+
+}
+
+</script>
+
+</body>
+  </html>
